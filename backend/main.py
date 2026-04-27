@@ -5,8 +5,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import os
 import unicodedata
 import sys
+import urllib.error
+import urllib.request
 import uuid
 from typing import Dict, List
 
@@ -33,6 +36,8 @@ from backend.models.schemas import (
     RadioScriptSection,
     RelayProfile,
     RelaySyncResponse,
+    SiraChatRequest,
+    SiraChatResponse,
     RelayVisitRequest,
     RelayVisitResponse,
     VulnerabilityFeature,
@@ -63,6 +68,55 @@ RISK_TIPS = {
     "maternal_mortality_rate": "Encourager les consultations prénatales dès le premier trimestre.",
     "adolescent_birth_rate": "Diffuser un segment dédié aux adolescentes sur la contraception moderne.",
 }
+
+SIRA_SYSTEM_PROMPT = """You are Sira, a warm and knowledgeable SRH health educator
+for women and adolescent girls in Burkina Faso.
+
+Your personality:
+- Warm, gentle, non-judgmental - like an older sister or trusted aunt
+- Never makes the user feel ashamed or wrong for asking
+- Uses simple, clear language - no complex medical jargon
+- Acknowledges feelings before giving information
+- Always ends responses with a path to action
+
+Your knowledge context:
+- You know Burkina Faso's health system deeply
+- Primary health centers are called CSPS (Centre de Sante et de Promotion Sociale) - there are ~1,900 across the country
+- Community health workers are called Relais Communautaires
+- Family planning and maternal care are FREE at all CSPS since 2020
+- You know the Dama platform and can refer users to /locator to find their nearest CSPS
+- Conflict has closed 500+ facilities in northern regions (Sahel, Est, Nord, Centre-Nord)
+
+Language rules:
+- Detect the language the user writes in automatically
+- Respond in the SAME language they use
+- If they write in Moore or mixed French/Moore, respond warmly in French with simple vocabulary
+- If they write in English, respond in English
+- Never switch languages mid-conversation unless the user does
+
+Topic boundaries:
+- You cover: menstruation, family planning, contraception, pregnancy, prenatal care, postnatal care, GBV support, adolescent health, body changes, reproductive anatomy, STIs, cervical health, maternal nutrition
+- For questions needing diagnosis: "I can share information but a CSPS nurse can examine you properly - would you like to find the nearest one open today?"
+- For crisis/emergency: immediately provide warmth + direct to nearest CSPS or CHW
+- For off-topic questions: gently redirect back to SRH topics
+- NEVER make the user feel judged, wrong, or shameful
+
+Response format:
+- Keep responses under 150 words
+- Use short paragraphs, never dense blocks of text
+- End EVERY response with one of:
+  -> A follow-up question to keep the conversation going
+  -> A gentle suggestion to find a CSPS: "Veux-tu trouver le CSPS le plus proche?"
+  -> A reassurance statement
+- Use checkmark bullets for lists, never numbered lists
+- Occasionally use a warm emoji (🌿 💚 ✨) but sparingly
+
+Privacy statement (say this only on first message):
+Begin your very first response with:
+"Je suis Sira 🌿 Tu peux me poser n'importe quelle question - je ne sais pas qui tu es et je ne le saurai jamais. Tout ce que tu dis ici reste entre nous."
+Then answer their question.
+
+Remember: You are often talking to a scared 15-year-old girl who has never been able to ask these questions out loud before. Be the person she needed."""
 
 _scores_df = run_pipeline(random_state=42)
 _facilities_df = generate_sample_facilities(random_state=42, facilities_per_province=6)
@@ -266,6 +320,67 @@ def _refresh_scores_with_feedback() -> Dict[str, int]:
     return {"interaction_logs": interaction_count, "relay_visits": relay_count}
 
 
+def _call_sira(messages: List[Dict[str, str]], language_mode: str = "auto") -> str:
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="ANTHROPIC_API_KEY is not configured on the backend.",
+        )
+
+    language_overrides = {
+        "fr": "Language override for this conversation: respond only in French.",
+        "en": "Language override for this conversation: respond only in English.",
+    }
+    effective_system = SIRA_SYSTEM_PROMPT
+    if language_mode in language_overrides:
+        effective_system = f"{SIRA_SYSTEM_PROMPT}\n\n{language_overrides[language_mode]}"
+
+    payload = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 1000,
+        "system": effective_system,
+        "messages": messages,
+    }
+    request = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=45) as response:
+            body = response.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        error_text = exc.read().decode("utf-8", errors="replace")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Anthropic request failed: {error_text[:300]}",
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Could not reach Anthropic: {exc.reason}") from exc
+
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=502, detail="Anthropic returned a non-JSON response.") from exc
+
+    content = parsed.get("content", [])
+    if not isinstance(content, list):
+        raise HTTPException(status_code=502, detail="Anthropic response format was unexpected.")
+
+    text_parts = [item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text"]
+    reply = "\n".join(text_parts).strip()
+    if not reply:
+        raise HTTPException(status_code=502, detail="Sira returned an empty response.")
+    return reply
+
+
 _initialize_score_history()
 
 
@@ -454,3 +569,10 @@ def post_feedback_refresh() -> FeedbackRefreshResponse:
         top_priority=top_priority,
         interaction_summary=summary,
     )
+
+
+@app.post("/api/sira/chat", response_model=SiraChatResponse)
+def post_sira_chat(payload: SiraChatRequest) -> SiraChatResponse:
+    messages = [{"role": item.role, "content": item.content} for item in payload.messages]
+    response_text = _call_sira(messages, payload.language_mode)
+    return SiraChatResponse(response=response_text)

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import TopNav from "../components/TopNav";
 
-const ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 const MAX_MESSAGES = 20;
+const API_BASE = "http://127.0.0.1:8000";
 
 const SUGGESTED_QUESTIONS = [
   "Est-ce que c'est normal d'avoir mal pendant mes regles?",
@@ -113,71 +113,14 @@ const WORKER_CARDS = [
   },
 ];
 
-const SIRA_SYSTEM_PROMPT = `You are Sira, a warm and knowledgeable SRH health educator
-for women and adolescent girls in Burkina Faso.
-
-Your personality:
-- Warm, gentle, non-judgmental - like an older sister or trusted aunt
-- Never makes the user feel ashamed or wrong for asking
-- Uses simple, clear language - no complex medical jargon
-- Acknowledges feelings before giving information
-- Always ends responses with a path to action
-
-Your knowledge context:
-- You know Burkina Faso's health system deeply
-- Primary health centers are called CSPS (Centre de Sante et de Promotion Sociale) - there are ~1,900 across the country
-- Community health workers are called Relais Communautaires
-- Family planning and maternal care are FREE at all CSPS since 2020
-- You know the Dama platform and can refer users to /locator to find their nearest CSPS
-- Conflict has closed 500+ facilities in northern regions (Sahel, Est, Nord, Centre-Nord)
-
-Language rules:
-- Detect the language the user writes in automatically
-- Respond in the SAME language they use
-- If they write in Moore or mixed French/Moore, respond warmly in French with simple vocabulary
-- If they write in English, respond in English
-- Never switch languages mid-conversation unless the user does
-
-Topic boundaries:
-- You cover: menstruation, family planning, contraception, pregnancy, prenatal care, postnatal care, GBV support, adolescent health, body changes, reproductive anatomy, STIs, cervical health, maternal nutrition
-- For questions needing diagnosis: "I can share information but a CSPS nurse can examine you properly - would you like to find the nearest one open today?"
-- For crisis/emergency: immediately provide warmth + direct to nearest CSPS or CHW
-- For off-topic questions: gently redirect back to SRH topics
-- NEVER make the user feel judged, wrong, or shameful
-
-Response format:
-- Keep responses under 150 words
-- Use short paragraphs, never dense blocks of text
-- End EVERY response with one of:
-  -> A follow-up question to keep the conversation going
-  -> A gentle suggestion to find a CSPS: "Veux-tu trouver le CSPS le plus proche?"
-  -> A reassurance statement
-- Use checkmark bullets for lists, never numbered lists
-- Occasionally use a warm emoji (🌿 💚 ✨) but sparingly
-
-Privacy statement (say this only on first message):
-Begin your very first response with:
-"Je suis Sira 🌿 Tu peux me poser n'importe quelle question - je ne sais pas qui tu es et je ne le saurai jamais. Tout ce que tu dis ici reste entre nous."
-Then answer their question.
-
-Remember: You are often talking to a scared 15-year-old girl who has never been able to ask these questions out loud before. Be the person she needed.`;
-
 function containsFacilityReferral(text) {
   const lowered = (text || "").toLowerCase();
   return lowered.includes("csps") || lowered.includes("find a facility");
 }
 
-function extractAnthropicText(payload) {
-  if (!payload?.content || !Array.isArray(payload.content)) return "";
-  return payload.content
-    .filter((item) => item.type === "text")
-    .map((item) => item.text)
-    .join("\n")
-    .trim();
-}
-
 export default function Learn() {
   const [activeTab, setActiveTab] = useState("ask");
+  const [languageMode, setLanguageMode] = useState("auto");
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -240,33 +183,31 @@ export default function Learn() {
     setIsSending(true);
 
     try {
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        throw new Error("Missing VITE_ANTHROPIC_API_KEY in your frontend environment.");
-      }
-
-      const response = await fetch(ANTHROPIC_ENDPOINT, {
+      const response = await fetch(`${API_BASE}/api/sira/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: SIRA_SYSTEM_PROMPT,
           messages: nextHistory,
+          language_mode: languageMode,
         }),
       });
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(errorBody || "Failed to get Sira response.");
+        let errorDetail = "Failed to get Sira response.";
+        try {
+          const errorJson = await response.json();
+          errorDetail = errorJson?.detail || errorDetail;
+        } catch {
+          const errorText = await response.text();
+          if (errorText) errorDetail = errorText;
+        }
+        throw new Error(errorDetail);
       }
 
       const payload = await response.json();
-      const assistantText = extractAnthropicText(payload);
+      const assistantText = payload?.response?.trim();
       if (!assistantText) throw new Error("Sira returned an empty response.");
 
       setMessages((prev) => [...prev, { role: "assistant", content: assistantText }]);
@@ -367,10 +308,43 @@ export default function Learn() {
                       </p>
                     </div>
                   </div>
-                  <button type="button" className="btn-secondary" onClick={resetConversation}>
-                    Start new conversation
-                  </button>
+                  <div className="sira-controls">
+                    <div className="sira-language-switch" role="group" aria-label="Sira language mode">
+                      <button
+                        type="button"
+                        className={`sira-lang-btn ${languageMode === "auto" ? "active" : ""}`}
+                        onClick={() => setLanguageMode("auto")}
+                      >
+                        Auto
+                      </button>
+                      <button
+                        type="button"
+                        className={`sira-lang-btn ${languageMode === "fr" ? "active" : ""}`}
+                        onClick={() => setLanguageMode("fr")}
+                      >
+                        Francais
+                      </button>
+                      <button
+                        type="button"
+                        className={`sira-lang-btn ${languageMode === "en" ? "active" : ""}`}
+                        onClick={() => setLanguageMode("en")}
+                      >
+                        English
+                      </button>
+                    </div>
+                    <button type="button" className="btn-secondary" onClick={resetConversation}>
+                      Start new conversation
+                    </button>
+                  </div>
                 </div>
+                <p className="sira-language-note">
+                  Language:{" "}
+                  {languageMode === "auto"
+                    ? "Auto follows the language you use."
+                    : languageMode === "fr"
+                      ? "Forced French responses."
+                      : "Forced English responses."}
+                </p>
 
                 <div className="sira-feed" ref={feedRef}>
                   {messages.length === 0 && (

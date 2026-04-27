@@ -1052,6 +1052,37 @@
   margin-bottom: 12px;
 }
 
+.sira-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sira-language-switch {
+  display: inline-flex;
+  align-items: center;
+  background: #f5ede0;
+  border: 1px solid rgba(193, 68, 14, 0.18);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.sira-lang-btn {
+  border: none;
+  background: transparent;
+  color: #6b5744;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.sira-lang-btn.active {
+  background: #c1440e;
+  color: #fff;
+}
+
 .sira-avatar-wrap {
   display: flex;
   align-items: center;
@@ -1079,6 +1110,12 @@
   margin: 2px 0 0;
   color: #7a6758;
   font-size: 13px;
+}
+
+.sira-language-note {
+  margin: -4px 0 10px;
+  color: #7a6758;
+  font-size: 12px;
 }
 
 .sira-feed {
@@ -1364,6 +1401,29 @@
 }
 
 @media (max-width: 1100px) {
+  .topnav {
+    height: auto;
+    min-height: 64px;
+    padding: 8px 0;
+  }
+
+  .topnav-inner {
+    height: auto;
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 8px;
+  }
+
+  .topnav-links {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+  }
+
+  .topnav-link {
+    padding-bottom: 2px;
+  }
+
   .topnav-time {
     display: none;
   }
@@ -1390,18 +1450,210 @@
     width: min(1280px, calc(100% - 40px));
   }
 
+  .page-shell {
+    padding-top: 122px;
+  }
+
   .sira-chat-head {
     flex-direction: column;
     align-items: flex-start;
   }
 
+  .sira-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
   .msg-bubble {
     max-width: 95%;
+  }
+
+  .radio-header,
+  .locator-top,
+  .relay-top,
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .radio-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .radio-select,
+  .locator-select,
+  .relay-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hero-title {
+    font-size: clamp(40px, 10vw, 58px);
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
   }
 }
 
 @media (max-width: 1500px) and (min-width: 1101px) {
   .radio-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 24px);
+  }
+
+  .page-shell {
+    padding-top: 140px;
+  }
+
+  .dashboard-inner,
+  .radio-inner,
+  .relay-inner,
+  .locator-inner,
+  .learn-inner {
+    padding-block: 20px;
+  }
+
+  .dashboard-title,
+  .locator-title,
+  .relay-title {
+    font-size: 32px;
+  }
+
+  .radio-title {
+    font-size: 34px;
+  }
+
+  .section-sand,
+  .section-white,
+  .section-dark,
+  .section-cta {
+    padding: 52px 0;
+  }
+
+  .section-title,
+  .cta-headline {
+    font-size: 32px;
+  }
+
+  .dashboard-panel,
+  .radio-header,
+  .script-card,
+  .radio-bottom-card,
+  .locator-card,
+  .relay-card,
+  .sira-left-panel,
+  .sira-chat-panel {
+    padding: 16px;
+  }
+
+  .dashboard-map {
+    height: 340px;
+  }
+
+  .metric-grid,
+  .locator-other-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-actions,
+  .relay-actions,
+  .hero-actions,
+  .learn-tabs,
+  .weekly-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .detail-actions .btn-primary,
+  .detail-actions .btn-secondary,
+  .relay-actions .btn-primary,
+  .relay-actions .btn-secondary,
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary,
+  .weekly-actions .btn-primary,
+  .weekly-actions .btn-secondary,
+  .learn-tabs .learn-tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sira-input-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sira-send {
+    width: 100%;
+  }
+
+  .sira-feed {
+    min-height: 300px;
+    max-height: 420px;
+  }
+
+  .sira-language-switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sira-lang-btn {
+    flex: 1;
+  }
+
+  .script-title,
+  .radio-bottom-title,
+  .relay-card-title,
+  .locator-section-title,
+  .qa-question {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topnav-wordmark {
+    font-size: 22px;
+  }
+
+  .topnav-links {
+    gap: 10px 12px;
+  }
+
+  .topnav-link {
+    font-size: 14px;
+  }
+
+  .page-shell {
+    padding-top: 148px;
+  }
+
+  .hero-title {
+    font-size: 34px;
+  }
+
+  .hero-subtitle,
+  .learn-hero-subtitle {
+    font-size: 15px;
+  }
+
+  .msg-bubble {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .sira-chat-meta {
+    font-size: 12px;
+  }
+
+  .priority-btn {
+    font-size: 14px;
+    padding: 10px 12px;
   }
 }

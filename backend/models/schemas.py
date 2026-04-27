@@ -116,3 +116,17 @@ class FeedbackRefreshResponse(BaseModel):
     refreshed_at: datetime
     top_priority: List[Dict[str, object]]
     interaction_summary: Dict[str, int]
+
+
+class SiraChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(..., min_length=1, max_length=3000)
+
+
+class SiraChatRequest(BaseModel):
+    messages: List[SiraChatMessage] = Field(..., min_length=1, max_length=20)
+    language_mode: Literal["auto", "fr", "en"] = "auto"
+
+
+class SiraChatResponse(BaseModel):
+    response: str
