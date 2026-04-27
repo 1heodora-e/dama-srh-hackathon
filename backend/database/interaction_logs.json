@@ -1,0 +1,154 @@
+[
+  {
+    "interaction_id": "8784755a-e344-40b9-8ed1-d0b6f5aef97f",
+    "province_id": 15,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": null,
+    "logged_at": "2026-04-23T08:22:23.599533+00:00"
+  },
+  {
+    "interaction_id": "74b2e08d-d056-4488-8edd-793bc457219c",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T08:52:54.208168+00:00"
+  },
+  {
+    "interaction_id": "3108e0e0-697d-4004-9c4e-ba7f747c4a41",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T08:52:54.212781+00:00"
+  },
+  {
+    "interaction_id": "7ef48409-bada-41d9-b5c9-2ec07b4c6de5",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T08:54:06.107328+00:00"
+  },
+  {
+    "interaction_id": "86e2e05e-c228-43e3-9c18-f99ac4c67f2a",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T08:59:56.028454+00:00"
+  },
+  {
+    "interaction_id": "7110004f-d255-4eba-8907-c34911a8b430",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:00:41.941486+00:00"
+  },
+  {
+    "interaction_id": "38fd1f62-1e71-4349-93c0-08f176aed2f5",
+    "province_id": 23,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:00:48.113226+00:00"
+  },
+  {
+    "interaction_id": "df069167-e5fd-4574-8724-16edfcdb323a",
+    "province_id": 2,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:00:50.993476+00:00"
+  },
+  {
+    "interaction_id": "7d7180b9-8785-4b53-83d2-aa13f3ccddea",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:08:30.882927+00:00"
+  },
+  {
+    "interaction_id": "cbdad900-f416-4b9d-80ed-74346d9ded82",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:08:30.898249+00:00"
+  },
+  {
+    "interaction_id": "674c2747-db9e-48cc-80be-788c68dd31ee",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:09:57.737301+00:00"
+  },
+  {
+    "interaction_id": "46473ae8-b809-416a-a639-25721721832f",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:09:57.752091+00:00"
+  },
+  {
+    "interaction_id": "b3c68918-92bb-4d65-8993-6be3ff9b21ee",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:12:49.664000+00:00"
+  },
+  {
+    "interaction_id": "09f425b0-fb63-4f44-93b7-34128f7ab8eb",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:20:30.471944+00:00"
+  },
+  {
+    "interaction_id": "f425e0b0-a4f5-4d32-8040-27a034a7fb41",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:22:09.504777+00:00"
+  },
+  {
+    "interaction_id": "707e356e-cbf8-4614-9ed6-926e4f1db1a5",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:22:09.515447+00:00"
+  },
+  {
+    "interaction_id": "9d8e4d73-0f85-4205-9044-8cad51fbf776",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:23:28.557864+00:00"
+  },
+  {
+    "interaction_id": "f5435fc3-4191-46ea-9331-c9008bb54dca",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:24:58.454072+00:00"
+  },
+  {
+    "interaction_id": "7af92702-e4eb-4f38-a1ce-6e203d56ca17",
+    "province_id": 1,
+    "interaction_type": "qr_scan",
+    "source": "pwa",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "logged_at": "2026-04-23T09:25:14.108429+00:00"
+  }
+]

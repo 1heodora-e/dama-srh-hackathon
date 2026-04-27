@@ -1,0 +1,155 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap");
+
+:root {
+  --terracotta: #c1440e;
+  --terracotta-light: #e8612a;
+  --sand: #f5ede0;
+  --sand-dark: #ead9c4;
+  --dark: #1c1410;
+  --dark-brown: #2d1b0e;
+  --forest: #2d6a4f;
+  --forest-light: #40916c;
+  --white: #fdfaf6;
+  --text-primary: #1c1410;
+  --text-secondary: #6b5744;
+  --border: rgba(193, 68, 14, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  font-family: "Jost", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  background: var(--white);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+}
+
+.display-font {
+  font-family: "Playfair Display", serif;
+}
+
+.fraunces {
+  font-family: "Playfair Display", serif;
+}
+
+.container {
+  width: min(1280px, calc(100% - 128px));
+  margin: 0 auto;
+}
+
+.page-shell {
+  padding-top: 88px;
+  min-height: 100vh;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(193, 68, 14, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(28, 20, 16, 0.06);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  box-shadow: 0 8px 32px rgba(28, 20, 16, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-ghost {
+  border-radius: 100px;
+  padding: 14px 28px;
+  font-family: "Jost", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  border: none;
+  background: var(--terracotta);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #8b2f08;
+}
+
+.btn-secondary {
+  border: 1.5px solid var(--terracotta);
+  background: transparent;
+  color: var(--terracotta);
+}
+
+.btn-secondary:hover {
+  background: rgba(193, 68, 14, 0.06);
+}
+
+.btn-ghost {
+  border: none;
+  background: transparent;
+  color: var(--terracotta);
+  padding-inline: 8px;
+}
+
+.btn-ghost:hover {
+  text-decoration: underline;
+}
+
+.label {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.status-pill {
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.status-low {
+  background: #f0f7f4;
+  color: #2d6a4f;
+}
+
+.status-medium {
+  background: #fef3e6;
+  color: #c1440e;
+}
+
+.status-high {
+  background: #fde8dc;
+  color: #8b2f08;
+}
+
+.status-critical {
+  background: #1c1410;
+  color: #f5ede0;
+}

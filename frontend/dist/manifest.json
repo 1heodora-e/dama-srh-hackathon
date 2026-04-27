@@ -1,0 +1,10 @@
+{
+  "name": "Dama",
+  "short_name": "Dama",
+  "theme_color": "#C1440E",
+  "background_color": "#F2E0C8",
+  "display": "standalone",
+  "start_url": "/locator",
+  "scope": "/",
+  "icons": []
+}
