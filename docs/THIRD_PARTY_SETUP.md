@@ -124,7 +124,7 @@ If health shows `provinces: 0` or errors:
 |------|--------|
 | `VITE_API_BASE_URL` | `https://YOUR_RENDER_API` |
 
-- Use **HTTPS**, no trailing slash.
+- Use **HTTPS**, **no trailing slash** (a trailing `/` causes `//api/...` URLs and 404s; the app now strips it, but avoid it in Vercel).
 - Add same variable for **Preview** if you test preview deployments.
 
 ### C3. Redeploy
