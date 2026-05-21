@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TopNav from "../components/TopNav";
 
-const API_BASE = "http://127.0.0.1:8000";
+import { API_BASE } from "../lib/api";
 const SERVICE_OPTIONS = [
   "family planning",
   "prenatal care",

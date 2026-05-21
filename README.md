@@ -104,11 +104,13 @@ App URL:
 Do not store Anthropic keys in frontend env.  
 Frontend should call backend APIs only.
 
-Optional frontend env for production API base:
+Frontend production API base (required on Vercel):
 
 ```env
-VITE_API_BASE_URL=https://your-backend-domain
+VITE_API_BASE_URL=https://your-backend.onrender.com
 ```
+
+Implemented in `frontend/src/lib/api.js` — used by all API pages.
 
 ## Application Routes (Frontend)
 
@@ -171,13 +173,28 @@ The UI includes responsive breakpoints for tablet and phone with improvements ac
 - form controls and button stacking
 - mobile chat usability on `/learn`
 
+## Production with PostgreSQL (Path 2)
+
+**Code in this repo:** Postgres via SQLAlchemy when `DATABASE_URL` is set; auto schema + seed on first boot; frontend uses `VITE_API_BASE_URL`.
+
+**Your steps in Render / Vercel / Anthropic:**
+
+- [`docs/THIRD_PARTY_SETUP.md`](docs/THIRD_PARTY_SETUP.md) ← start here for hosting dashboards
+
+**Full engineering checklist:**
+
+- [`docs/PATH2_DEPLOYMENT_CHECKLIST.md`](docs/PATH2_DEPLOYMENT_CHECKLIST.md)
+
 ## Deployment Guide (Recommended)
 
 ### Backend -> Render
 
-- Build command: `pip install -r backend/requirements.txt` (or equivalent install flow)
+- Build command: `pip install -r backend/requirements.txt`
 - Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- Link **Render PostgreSQL** → sets `DATABASE_URL` (tables + seed run automatically on first start)
 - Add secret: `ANTHROPIC_API_KEY`
+- Optional: `CORS_ORIGINS=https://your-app.vercel.app,http://localhost:5173`
+- Health check: `GET /health`
 
 ### Frontend -> Vercel
 

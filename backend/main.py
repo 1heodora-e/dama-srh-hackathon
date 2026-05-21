@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 import json
 import os
-import unicodedata
 import sys
 import urllib.error
 import urllib.request
@@ -20,11 +19,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from backend.database.seed_data import (
-    generate_sample_facilities,
-    generate_sample_relay_households,
-    generate_sample_relays,
-)
+from backend.database.store import DataStore
 from backend.models.schemas import (
     FacilityItem,
     FacilityResponse,
@@ -44,21 +39,26 @@ from backend.models.schemas import (
     VulnerabilityFeatureCollection,
 )
 from backend.nlp.moore_templates import MOORE_KEY_PHRASES
-from backend.ml.vulnerability_model import build_vulnerability_outputs, run_pipeline
+
+
+def _cors_origins() -> List[str]:
+    raw = os.getenv("CORS_ORIGINS", "").strip()
+    if raw:
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return ["*"]
 
 
 app = FastAPI(title="Dama API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-INTERACTIONS_PATH = Path(__file__).resolve().parent / "database" / "interaction_logs.json"
-RELAY_VISITS_PATH = Path(__file__).resolve().parent / "database" / "relay_visits.json"
+store = DataStore()
 
 RISK_TIPS = {
     "distance_to_nearest_csps_km": "Planifier un transport communautaire vers le CSPS le plus proche cette semaine.",
@@ -118,13 +118,6 @@ Then answer their question.
 
 Remember: You are often talking to a scared 15-year-old girl who has never been able to ask these questions out loud before. Be the person she needed."""
 
-_scores_df = run_pipeline(random_state=42)
-_facilities_df = generate_sample_facilities(random_state=42, facilities_per_province=6)
-_relays_df = generate_sample_relays()
-_relay_households = generate_sample_relay_households(_relays_df)
-_score_history: List[Dict[str, object]] = []
-
-
 def _row_to_feature(row) -> VulnerabilityFeature:
     return VulnerabilityFeature(
         properties={
@@ -140,14 +133,16 @@ def _row_to_feature(row) -> VulnerabilityFeature:
 
 
 def _get_province_row(province_id: int):
-    match = _scores_df[_scores_df["province_id"] == province_id]
+    scores = store.scores_df
+    match = scores[scores["province_id"] == province_id]
     if match.empty:
         raise HTTPException(status_code=404, detail=f"Province {province_id} not found.")
     return match.iloc[0]
 
 
 def _nearest_open_facility(province_id: int) -> Dict[str, object]:
-    subset = _facilities_df[_facilities_df["province_id"] == province_id].copy()
+    facilities = store.facilities_df
+    subset = facilities[facilities["province_id"] == province_id].copy()
     if subset.empty:
         raise HTTPException(status_code=404, detail=f"No facilities available for province {province_id}.")
     subset = subset.sort_values("distance_km")
@@ -231,95 +226,6 @@ def _build_english_script(row) -> RadioScriptSection:
     )
 
 
-def _persist_interaction(payload: Dict[str, object]) -> None:
-    logs: List[Dict[str, object]] = []
-    if INTERACTIONS_PATH.exists():
-        with INTERACTIONS_PATH.open("r", encoding="utf-8") as file:
-            logs = json.load(file)
-    logs.append(payload)
-    with INTERACTIONS_PATH.open("w", encoding="utf-8") as file:
-        json.dump(logs, file, indent=2)
-
-
-def _persist_relay_visit(payload: Dict[str, object]) -> None:
-    logs: List[Dict[str, object]] = []
-    if RELAY_VISITS_PATH.exists():
-        with RELAY_VISITS_PATH.open("r", encoding="utf-8") as file:
-            logs = json.load(file)
-    logs.append(payload)
-    with RELAY_VISITS_PATH.open("w", encoding="utf-8") as file:
-        json.dump(logs, file, indent=2)
-
-
-def _load_logs(path: Path) -> List[Dict[str, object]]:
-    if not path.exists():
-        return []
-    with path.open("r", encoding="utf-8") as file:
-        return json.load(file)
-
-
-def _normalize_name(value: str) -> str:
-    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
-    return normalized.lower().replace("-", " ").replace("'", " ").replace("  ", " ").strip()
-
-
-def _initialize_score_history() -> None:
-    _score_history.clear()
-    now = datetime.now(timezone.utc).isoformat()
-    for _, row in _scores_df.iterrows():
-        _score_history.append(
-            {
-                "province_id": int(row["province_id"]),
-                "score": float(row["vulnerability_score"]),
-                "recorded_at": now,
-            }
-        )
-
-
-def _refresh_scores_with_feedback() -> Dict[str, int]:
-    global _scores_df
-    interaction_logs = _load_logs(INTERACTIONS_PATH)
-    relay_logs = _load_logs(RELAY_VISITS_PATH)
-
-    interaction_count = len(interaction_logs)
-    relay_count = len(relay_logs)
-
-    # Retrain to keep model artifacts fresh, then apply an MVP demand-signal bump.
-    retrained_scores, _ = build_vulnerability_outputs(random_state=42)
-    updated = retrained_scores.copy()
-
-    interaction_by_province: Dict[int, int] = {}
-    for log in interaction_logs:
-        pid = int(log.get("province_id", 0) or 0)
-        interaction_by_province[pid] = interaction_by_province.get(pid, 0) + 1
-
-    relay_by_province: Dict[int, int] = {}
-    for log in relay_logs:
-        pid = int(log.get("province_id", 0) or 0)
-        relay_by_province[pid] = relay_by_province.get(pid, 0) + 1
-
-    def apply_signal(row):
-        pid = int(row["province_id"])
-        uplift = min(interaction_by_province.get(pid, 0) * 0.25 + relay_by_province.get(pid, 0) * 0.35, 8.0)
-        return max(0.0, min(float(row["vulnerability_score"]) + uplift, 100.0))
-
-    updated["vulnerability_score"] = updated.apply(apply_signal, axis=1).round(2)
-    updated = updated.sort_values("vulnerability_score", ascending=False).reset_index(drop=True)
-    _scores_df = updated
-
-    now = datetime.now(timezone.utc).isoformat()
-    for _, row in _scores_df.iterrows():
-        _score_history.append(
-            {
-                "province_id": int(row["province_id"]),
-                "score": float(row["vulnerability_score"]),
-                "recorded_at": now,
-            }
-        )
-
-    return {"interaction_logs": interaction_count, "relay_visits": relay_count}
-
-
 def _call_sira(messages: List[Dict[str, str]], language_mode: str = "auto") -> str:
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
@@ -381,12 +287,18 @@ def _call_sira(messages: List[Dict[str, str]], language_mode: str = "auto") -> s
     return reply
 
 
-_initialize_score_history()
+@app.get("/health")
+def health_check() -> Dict[str, object]:
+    return {
+        "status": "ok",
+        "database": store.use_db,
+        "provinces": len(store.scores_df),
+    }
 
 
 @app.get("/api/vulnerability/scores", response_model=VulnerabilityFeatureCollection)
 def get_vulnerability_scores() -> VulnerabilityFeatureCollection:
-    features = [_row_to_feature(row) for _, row in _scores_df.iterrows()]
+    features = [_row_to_feature(row) for _, row in store.scores_df.iterrows()]
     return VulnerabilityFeatureCollection(features=features)
 
 
@@ -414,7 +326,7 @@ def get_province_detail(province_id: int) -> ProvinceDetail:
 
 @app.get("/api/vulnerability/top-priority", response_model=List[ProvinceDetail])
 def get_top_priority() -> List[ProvinceDetail]:
-    top = _scores_df.sort_values("vulnerability_score", ascending=False).head(10)
+    top = store.scores_df.sort_values("vulnerability_score", ascending=False).head(10)
     return [
         ProvinceDetail(
             province_id=int(row["province_id"]),
@@ -469,7 +381,7 @@ def log_locator_interaction(payload: InteractionLogRequest) -> InteractionLogRes
         "user_agent": payload.user_agent,
         "logged_at": now.isoformat(),
     }
-    _persist_interaction(serializable)
+    store.persist_interaction(serializable)
     return InteractionLogResponse(
         message="Interaction logged successfully.",
         interaction_id=interaction_id,
@@ -480,7 +392,8 @@ def log_locator_interaction(payload: InteractionLogRequest) -> InteractionLogRes
 @app.get("/api/locator/facilities/{province_id}", response_model=FacilityResponse)
 def get_locator_facilities(province_id: int) -> FacilityResponse:
     _get_province_row(province_id)
-    subset = _facilities_df[_facilities_df["province_id"] == province_id].copy()
+    facilities = store.facilities_df
+    subset = facilities[facilities["province_id"] == province_id].copy()
     if subset.empty:
         raise HTTPException(status_code=404, detail=f"No facilities available for province {province_id}.")
 
@@ -504,7 +417,8 @@ def get_locator_facilities(province_id: int) -> FacilityResponse:
 
 @app.get("/api/relay/sync/{relay_id}", response_model=RelaySyncResponse)
 def get_relay_sync(relay_id: str) -> RelaySyncResponse:
-    relay_match = _relays_df[_relays_df["relay_id"] == relay_id]
+    relays = store.relays_df
+    relay_match = relays[relays["relay_id"] == relay_id]
     if relay_match.empty:
         raise HTTPException(status_code=404, detail=f"Relay {relay_id} not found.")
     relay_row = relay_match.iloc[0]
@@ -518,14 +432,15 @@ def get_relay_sync(relay_id: str) -> RelaySyncResponse:
     )
     return RelaySyncResponse(
         relay=relay,
-        households=_relay_households.get(relay_id, []),
+        households=store.relay_households.get(relay_id, []),
         last_synced=datetime.now(timezone.utc),
     )
 
 
 @app.post("/api/relay/visit", response_model=RelayVisitResponse)
 def post_relay_visit(payload: RelayVisitRequest) -> RelayVisitResponse:
-    relay_match = _relays_df[_relays_df["relay_id"] == payload.relay_id]
+    relays = store.relays_df
+    relay_match = relays[relays["relay_id"] == payload.relay_id]
     if relay_match.empty:
         raise HTTPException(status_code=404, detail=f"Relay {payload.relay_id} not found.")
     _get_province_row(payload.province_id)
@@ -542,7 +457,7 @@ def post_relay_visit(payload: RelayVisitRequest) -> RelayVisitResponse:
         "service_type": payload.service_type,
         "logged_at": now.isoformat(),
     }
-    _persist_relay_visit(serializable)
+    store.persist_relay_visit(serializable)
     return RelayVisitResponse(
         message="Relay visit submitted successfully.",
         visit_id=visit_id,
@@ -552,7 +467,7 @@ def post_relay_visit(payload: RelayVisitRequest) -> RelayVisitResponse:
 
 @app.post("/api/feedback/refresh", response_model=FeedbackRefreshResponse)
 def post_feedback_refresh() -> FeedbackRefreshResponse:
-    summary = _refresh_scores_with_feedback()
+    summary = store.refresh_scores_with_feedback()
     refreshed_at = datetime.now(timezone.utc)
     top_priority = [
         {
@@ -561,7 +476,7 @@ def post_feedback_refresh() -> FeedbackRefreshResponse:
             "score": float(row["vulnerability_score"]),
             "top_risk_factor": row["top_risk_factor"],
         }
-        for _, row in _scores_df.head(10).iterrows()
+        for _, row in store.scores_df.head(10).iterrows()
     ]
     return FeedbackRefreshResponse(
         message="Feedback loop refresh complete. Scores updated with latest interactions.",

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import TopNav from "../components/TopNav";
 
 const MAX_MESSAGES = 20;
-const API_BASE = "http://127.0.0.1:8000";
+import { API_BASE } from "../lib/api";
 
 const SUGGESTED_QUESTIONS = [
   "Est-ce que c'est normal d'avoir mal pendant mes regles?",
