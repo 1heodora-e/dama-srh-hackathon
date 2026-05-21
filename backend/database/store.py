@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +16,7 @@ logger = logging.getLogger("dama.store")
 
 _store: Optional["DataStore"] = None
 _init_error: Optional[str] = None
+_init_lock = threading.Lock()
 
 from backend.database.connection import is_database_enabled
 from backend.database import repository as db
@@ -185,19 +187,22 @@ def get_store() -> DataStore:
         return _store
     if _init_error:
         raise RuntimeError(_init_error)
-    try:
-        logger.info("Initializing Dama data store...")
-        _store = DataStore()
-        logger.info(
-            "Data store ready: provinces=%s database=%s",
-            len(_store.scores_df),
-            _store.use_db,
-        )
-        return _store
-    except Exception as exc:
-        _init_error = str(exc)
-        logger.error("Data store initialization failed:\n%s", traceback.format_exc())
-        raise
+    with _init_lock:
+        if _store is not None:
+            return _store
+        try:
+            logger.info("Initializing Dama data store...")
+            _store = DataStore()
+            logger.info(
+                "Data store ready: provinces=%s database=%s",
+                len(_store.scores_df),
+                _store.use_db,
+            )
+            return _store
+        except Exception as exc:
+            _init_error = str(exc)
+            logger.error("Data store initialization failed:\n%s", traceback.format_exc())
+            raise
 
 
 def get_store_status() -> Dict[str, object]:

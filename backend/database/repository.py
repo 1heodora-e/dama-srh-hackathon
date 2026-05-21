@@ -71,6 +71,7 @@ def seed_from_dataframes(
                     conflict_affected=bool(row["conflict_affected_binary"]),
                 )
             )
+        session.flush()
 
         for _, row in indicators_df.iterrows():
             pid = int(row["province_id"])
@@ -79,6 +80,7 @@ def seed_from_dataframes(
                 if hasattr(value, "item"):
                     payload[key] = value.item()
             session.add(ProvinceIndicator(province_id=pid, indicators=payload))
+        session.flush()
 
         now = datetime.now(timezone.utc)
         for _, row in scores_df.iterrows():
@@ -101,6 +103,7 @@ def seed_from_dataframes(
                     recorded_at=now,
                 )
             )
+        session.flush()
 
         for _, row in facilities_df.iterrows():
             session.add(
