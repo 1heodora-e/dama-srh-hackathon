@@ -5,8 +5,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import logging
 import os
 import sys
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 import urllib.error
 import urllib.request
 import uuid
@@ -19,7 +22,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from backend.database.store import DataStore
+from backend.database.store import get_store, get_store_status
 from backend.models.schemas import (
     FacilityItem,
     FacilityResponse,
@@ -57,8 +60,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-store = DataStore()
 
 RISK_TIPS = {
     "distance_to_nearest_csps_km": "Planifier un transport communautaire vers le CSPS le plus proche cette semaine.",
@@ -133,7 +134,7 @@ def _row_to_feature(row) -> VulnerabilityFeature:
 
 
 def _get_province_row(province_id: int):
-    scores = store.scores_df
+    scores = get_store().scores_df
     match = scores[scores["province_id"] == province_id]
     if match.empty:
         raise HTTPException(status_code=404, detail=f"Province {province_id} not found.")
@@ -141,7 +142,7 @@ def _get_province_row(province_id: int):
 
 
 def _nearest_open_facility(province_id: int) -> Dict[str, object]:
-    facilities = store.facilities_df
+    facilities = get_store().facilities_df
     subset = facilities[facilities["province_id"] == province_id].copy()
     if subset.empty:
         raise HTTPException(status_code=404, detail=f"No facilities available for province {province_id}.")
@@ -289,16 +290,20 @@ def _call_sira(messages: List[Dict[str, str]], language_mode: str = "auto") -> s
 
 @app.get("/health")
 def health_check() -> Dict[str, object]:
-    return {
-        "status": "ok",
-        "database": store.use_db,
-        "provinces": len(store.scores_df),
-    }
+    """Lightweight check; triggers data load on first call if not ready."""
+    status = get_store_status()
+    if status.get("status") == "starting":
+        try:
+            get_store()
+            return get_store_status()
+        except RuntimeError as exc:
+            return {"status": "error", "database": status.get("database"), "detail": str(exc)}
+    return status
 
 
 @app.get("/api/vulnerability/scores", response_model=VulnerabilityFeatureCollection)
 def get_vulnerability_scores() -> VulnerabilityFeatureCollection:
-    features = [_row_to_feature(row) for _, row in store.scores_df.iterrows()]
+    features = [_row_to_feature(row) for _, row in get_store().scores_df.iterrows()]
     return VulnerabilityFeatureCollection(features=features)
 
 
@@ -326,7 +331,7 @@ def get_province_detail(province_id: int) -> ProvinceDetail:
 
 @app.get("/api/vulnerability/top-priority", response_model=List[ProvinceDetail])
 def get_top_priority() -> List[ProvinceDetail]:
-    top = store.scores_df.sort_values("vulnerability_score", ascending=False).head(10)
+    top = get_store().scores_df.sort_values("vulnerability_score", ascending=False).head(10)
     return [
         ProvinceDetail(
             province_id=int(row["province_id"]),
@@ -381,7 +386,7 @@ def log_locator_interaction(payload: InteractionLogRequest) -> InteractionLogRes
         "user_agent": payload.user_agent,
         "logged_at": now.isoformat(),
     }
-    store.persist_interaction(serializable)
+    get_store().persist_interaction(serializable)
     return InteractionLogResponse(
         message="Interaction logged successfully.",
         interaction_id=interaction_id,
@@ -392,7 +397,7 @@ def log_locator_interaction(payload: InteractionLogRequest) -> InteractionLogRes
 @app.get("/api/locator/facilities/{province_id}", response_model=FacilityResponse)
 def get_locator_facilities(province_id: int) -> FacilityResponse:
     _get_province_row(province_id)
-    facilities = store.facilities_df
+    facilities = get_store().facilities_df
     subset = facilities[facilities["province_id"] == province_id].copy()
     if subset.empty:
         raise HTTPException(status_code=404, detail=f"No facilities available for province {province_id}.")
@@ -417,7 +422,7 @@ def get_locator_facilities(province_id: int) -> FacilityResponse:
 
 @app.get("/api/relay/sync/{relay_id}", response_model=RelaySyncResponse)
 def get_relay_sync(relay_id: str) -> RelaySyncResponse:
-    relays = store.relays_df
+    relays = get_store().relays_df
     relay_match = relays[relays["relay_id"] == relay_id]
     if relay_match.empty:
         raise HTTPException(status_code=404, detail=f"Relay {relay_id} not found.")
@@ -432,14 +437,14 @@ def get_relay_sync(relay_id: str) -> RelaySyncResponse:
     )
     return RelaySyncResponse(
         relay=relay,
-        households=store.relay_households.get(relay_id, []),
+        households=get_store().relay_households.get(relay_id, []),
         last_synced=datetime.now(timezone.utc),
     )
 
 
 @app.post("/api/relay/visit", response_model=RelayVisitResponse)
 def post_relay_visit(payload: RelayVisitRequest) -> RelayVisitResponse:
-    relays = store.relays_df
+    relays = get_store().relays_df
     relay_match = relays[relays["relay_id"] == payload.relay_id]
     if relay_match.empty:
         raise HTTPException(status_code=404, detail=f"Relay {payload.relay_id} not found.")
@@ -457,7 +462,7 @@ def post_relay_visit(payload: RelayVisitRequest) -> RelayVisitResponse:
         "service_type": payload.service_type,
         "logged_at": now.isoformat(),
     }
-    store.persist_relay_visit(serializable)
+    get_store().persist_relay_visit(serializable)
     return RelayVisitResponse(
         message="Relay visit submitted successfully.",
         visit_id=visit_id,
@@ -467,7 +472,7 @@ def post_relay_visit(payload: RelayVisitRequest) -> RelayVisitResponse:
 
 @app.post("/api/feedback/refresh", response_model=FeedbackRefreshResponse)
 def post_feedback_refresh() -> FeedbackRefreshResponse:
-    summary = store.refresh_scores_with_feedback()
+    summary = get_store().refresh_scores_with_feedback()
     refreshed_at = datetime.now(timezone.utc)
     top_priority = [
         {
@@ -476,7 +481,7 @@ def post_feedback_refresh() -> FeedbackRefreshResponse:
             "score": float(row["vulnerability_score"]),
             "top_risk_factor": row["top_risk_factor"],
         }
-        for _, row in store.scores_df.head(10).iterrows()
+        for _, row in get_store().scores_df.head(10).iterrows()
     ]
     return FeedbackRefreshResponse(
         message="Feedback loop refresh complete. Scores updated with latest interactions.",

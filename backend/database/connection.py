@@ -21,6 +21,10 @@ def get_database_url() -> Optional[str]:
     # Render/Heroku use postgres:// — SQLAlchemy 2 prefers postgresql://
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
+    # Render Postgres requires SSL for external and most internal connections
+    if "sslmode=" not in url:
+        separator = "&" if "?" in url else "?"
+        url = f"{url}{separator}sslmode=require"
     return url
 
 

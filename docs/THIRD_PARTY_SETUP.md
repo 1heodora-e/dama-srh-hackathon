@@ -65,7 +65,18 @@ If `CORS_ORIGINS` is omitted, the API allows `*` (works but less secure).
 2. Wait for build (install + ML model train on first request can take 1–3 minutes on free tier).
 3. **First deploy with `DATABASE_URL`:** the app auto-creates tables and seeds 45 provinces (cold start may be slow).
 
-### B5. Verify backend
+### B5. If deploy fails after “Build successful”
+
+The **runtime** log (after `Running 'uvicorn...'`) shows the real error. In Render → your service → **Logs**:
+
+1. Scroll past `Build successful` to the **deploy / runtime** section.
+2. Look for `Traceback`, `Error`, `Data store initialization failed`, or `FATAL`.
+3. Common causes:
+   - **No port / Exited with status 1** — app crashed on startup (often DB SSL or slow seed). Latest code uses lazy startup so the port opens first; push latest `main` + redeploy.
+   - **DB connection** — ensure `DATABASE_URL` is linked; Internal URL from Render Postgres.
+   - **First `/health` slow** — first request runs ML + seed (30–90s on free tier); wait and retry.
+
+### B6. Verify backend
 
 Open in browser:
 
@@ -73,7 +84,7 @@ Open in browser:
 - [ ] `https://YOUR_RENDER_API/docs` → Swagger UI
 - [ ] `https://YOUR_RENDER_API/api/vulnerability/scores` → JSON FeatureCollection
 
-### B6. Optional — manual reseed (Render Shell)
+### B7. Optional — manual reseed (Render Shell)
 
 If health shows `provinces: 0` or errors:
 

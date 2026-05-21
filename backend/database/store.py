@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import json
+import logging
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+
+logger = logging.getLogger("dama.store")
+
+_store: Optional["DataStore"] = None
+_init_error: Optional[str] = None
 
 from backend.database.connection import is_database_enabled
 from backend.database import repository as db
@@ -169,3 +176,43 @@ class DataStore:
             )
 
         return {"interaction_logs": interaction_count, "relay_visits": relay_count}
+
+
+def get_store() -> DataStore:
+    """Lazy singleton so uvicorn can bind the port before ML/DB seed runs."""
+    global _store, _init_error
+    if _store is not None:
+        return _store
+    if _init_error:
+        raise RuntimeError(_init_error)
+    try:
+        logger.info("Initializing Dama data store...")
+        _store = DataStore()
+        logger.info(
+            "Data store ready: provinces=%s database=%s",
+            len(_store.scores_df),
+            _store.use_db,
+        )
+        return _store
+    except Exception as exc:
+        _init_error = str(exc)
+        logger.error("Data store initialization failed:\n%s", traceback.format_exc())
+        raise
+
+
+def get_store_status() -> Dict[str, object]:
+    """Non-throwing status for /health before or after init."""
+    if _store is not None:
+        return {
+            "status": "ok",
+            "database": _store.use_db,
+            "provinces": len(_store.scores_df),
+        }
+    if _init_error:
+        return {"status": "error", "database": is_database_enabled(), "detail": _init_error}
+    return {
+        "status": "starting",
+        "database": is_database_enabled(),
+        "provinces": 0,
+        "detail": "Data store not loaded yet; first API call will initialize.",
+    }
