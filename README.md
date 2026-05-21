@@ -189,7 +189,7 @@ The UI includes responsive breakpoints for tablet and phone with improvements ac
 
 ### Backend -> Render
 
-- Build command: `pip install -r backend/requirements.txt`
+- Build command: `pip install -r requirements.txt`
 - Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 - Link **Render PostgreSQL** → sets `DATABASE_URL` (tables + seed run automatically on first start)
 - Add secret: `ANTHROPIC_API_KEY`

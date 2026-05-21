@@ -18,8 +18,7 @@ Do this first so you can verify Render/Vercel wiring before DB work.
 ### 0.1 Render backend health
 
 - [ ] Render Web Service exists; repo root is the service root (not `frontend/`)
-- [ ] **Build command** installs Python deps, e.g.  
-      `pip install fastapi uvicorn pandas numpy scikit-learn joblib httpx pydantic sqlalchemy psycopg2-binary alembic`
+- [ ] **Build command:** `pip install -r requirements.txt` (repo root — includes SQLAlchemy, psycopg2, etc.)
 - [ ] **Start command:**  
       `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 - [ ] Add `backend/requirements.txt` in repo (recommended) and point Render build at it
@@ -206,7 +205,7 @@ Ensure response shapes stay identical (frontend unchanged except `API_BASE`):
 - [ ] `GET /api/relay/sync/{relay_id}`
 - [ ] `POST /api/relay/visit`
 - [ ] `POST /api/feedback/refresh`
-- [ ] `POST /api/sira/chat`
+- [ ] `POST /apii/sira/chat`
 
 ---
 

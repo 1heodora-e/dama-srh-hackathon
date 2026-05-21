@@ -1,0 +1,2 @@
+# Render installs from repo root by default — keep in sync with backend/requirements.txt
+-r backend/requirements.txt

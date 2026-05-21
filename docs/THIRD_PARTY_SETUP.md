@@ -37,7 +37,7 @@ Replace placeholders:
 |-------|--------|
 | **Root Directory** | *(leave empty — repo root)* |
 | **Runtime** | Python 3 |
-| **Build Command** | `pip install -r backend/requirements.txt` |
+| **Build Command** | `pip install -r requirements.txt` (root file includes `backend/requirements.txt`) |
 | **Start Command** | `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` |
 
 ### B2. Link database
