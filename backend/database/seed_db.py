@@ -9,8 +9,8 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from backend.database.connection import get_database_url, init_schema, is_database_enabled
-from backend.database.repository import province_count, seed_from_dataframes
+from backend.database.connection import get_database_url, is_database_enabled
+from backend.database.repository import init_schema, province_count, seed_from_dataframes
 from backend.database.seed_data import (
     generate_sample_facilities,
     generate_sample_relay_households,
