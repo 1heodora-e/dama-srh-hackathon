@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 
 import { API_BASE } from "../lib/api";
+import { useAuth } from "../lib/auth";
 const SERVICE_OPTIONS = [
   "family planning",
   "prenatal care",
@@ -28,6 +29,7 @@ function buildInitialHouseholds(total = 0, labels = []) {
 }
 
 export default function RelayPortal() {
+  const { role } = useAuth();
   const [households, setHouseholds] = useState([]);
   const [activeHouseholdId, setActiveHouseholdId] = useState(null);
   const [online, setOnline] = useState(navigator.onLine);
@@ -159,6 +161,7 @@ export default function RelayPortal() {
           refRight={relayProfile?.commune || "Assigned commune"}
           title={`Bonjour, ${relayProfile?.relay_name || "Relay Worker"}`}
           subtitle="Use this during door-to-door visits to record anonymized SRH needs for your commune."
+          audience="Relais Communautaires · Community health workers"
         />
         <div className="container relay-inner">
           <div className="mobile-center">
@@ -282,14 +285,22 @@ export default function RelayPortal() {
               </button>
             </footer>
 
-            <div className="relay-actions">
-              <Link to="/dashboard" className="btn-secondary">
-                Back to main dashboard
-              </Link>
-              <Link to="/radio" className="btn-ghost">
-                Open Radio Portal
-              </Link>
-            </div>
+            {role?.key === "moh" ? (
+              <div className="relay-actions">
+                <Link to="/dashboard" className="btn-secondary">
+                  Back to main dashboard
+                </Link>
+                <Link to="/radio" className="btn-ghost">
+                  Open Radio Portal
+                </Link>
+              </div>
+            ) : (
+              <div className="relay-actions">
+                <Link to="/locator" className="btn-secondary">
+                  Find a CSPS for a household
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </main>

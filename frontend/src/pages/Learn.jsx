@@ -231,6 +231,7 @@ export default function Learn() {
           refLeft="Sira · Anonymous"
           refRight="Nothing is stored"
           title="Ask anything. No judgment. No record."
+          audience="Women and girls · Anonymous, no account needed"
           subtitle="Sira is here for every question you were too afraid to ask."
         >
             <div className="learn-tabs">

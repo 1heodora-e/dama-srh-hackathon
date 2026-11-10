@@ -87,6 +87,7 @@ export default function Dashboard() {
           refRight="Dama model · live"
           title="Equity intelligence"
           subtitle="See which provinces need SRH support most, what is driving the gap, and act on it with radio scripts and relay visits."
+          audience="Ministry of Health · National & district planners"
         />
         <div className="container dashboard-inner">
           {error ? <p className="alert alert-error">{error}</p> : null}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import TopNav from "../components/TopNav";
 import { API_BASE } from "../lib/api";
+import { useAuth } from "../lib/auth";
 
 const RISK_LABELS = {
   distance_to_nearest_csps_km: "far from the nearest CSPS",
@@ -19,6 +20,41 @@ const RISK_LABELS = {
 };
 
 const GREETINGS = ["Laafi bala", "Bonjour", "Hello"];
+
+const WHO = [
+  {
+    role: "moh",
+    to: "/dashboard",
+    tone: "t-dark dm-patterned",
+    space: "Espace Ministère",
+    title: "Ministry of Health",
+    text: "National and district planners: see vulnerability scores for every province and decide where support goes first.",
+  },
+  {
+    role: "relay",
+    to: "/relay",
+    tone: "t-terra",
+    space: "Espace Relais",
+    title: "Relais Communautaires",
+    text: "Community health workers: your household visits for today, recorded offline and synced later.",
+  },
+  {
+    role: "radio",
+    to: "/radio",
+    tone: "t-clay",
+    space: "Espace Radio",
+    title: "Community radio hosts",
+    text: "A weekly SRH segment for your province, ready to read in Mooré, French and English.",
+  },
+  {
+    role: null,
+    to: "/locator",
+    tone: "t-sand",
+    space: "Public",
+    title: "Women and girls",
+    text: "Find the nearest open CSPS and ask Sira anything, privately. No account, nothing stored.",
+  },
+];
 
 function riskLabel(key) {
   return RISK_LABELS[key] || String(key || "").replaceAll("_", " ");
@@ -47,6 +83,7 @@ export default function Landing() {
   const [scores, setScores] = useState([]);
   const [top, setTop] = useState([]);
   const [greet, setGreet] = useState(0);
+  const { canAccess } = useAuth();
 
   useEffect(() => {
     fetch(`${API_BASE}/api/vulnerability/scores`)
@@ -111,12 +148,12 @@ export default function Landing() {
                   </span>
                 </p>
                 <div className="dm-ctas">
-                  <Link className="dm-btn dm-btn-terra" to="/dashboard">
-                    Open dashboard
+                  <Link className="dm-btn dm-btn-terra" to="/locator">
+                    Find a clinic
                   </Link>
-                  <Link className="dm-btn dm-btn-line" to="/learn">
-                    Ask Sira
-                  </Link>
+                  <a className="dm-btn dm-btn-line" href="#who">
+                    Who is Dama for?
+                  </a>
                 </div>
               </div>
               <div className="dm-photo" data-cursor="Laafi">
@@ -147,6 +184,34 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ---------- Who is Dama for ---------- */}
+        <section className="dm-block" id="who">
+          <div className="dm-wrap">
+            <div className="dm-head">
+              <h2>Who is Dama for?</h2>
+              <span className="dm-tag">Choose your space</span>
+            </div>
+            <div className="dm-tiles dm-who">
+              {WHO.map((item) => {
+                const staff = item.role !== null;
+                const open = !staff || canAccess(item.to);
+                return (
+                  <Link key={item.to} className={`dm-tile ${item.tone}`} to={item.to}>
+                    <span className="dm-ref">{item.space}</span>
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
+                    <span className="go">
+                      {staff ? (open ? "Open your space →" : "🔒 Staff access code") : "Open to everyone →"}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+            <p className="dm-who-note dm-ref">
+              Each role sees only its own tools and data. Women and girls never need an account.
+            </p>
+          </div>
+        </section>
         {/* ---------- About board ---------- */}
         <section className="dm-board dm-outer">
           <div className="dm-board-in dm-patterned">
@@ -302,41 +367,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ---------- Explore tiles ---------- */}
-        <section className="dm-block">
-          <div className="dm-wrap">
-            <div className="dm-head">
-              <h2>Explore Dama</h2>
-              <span className="dm-tag">For communities</span>
-            </div>
-            <div className="dm-tiles">
-              <Link className="dm-tile t-terra" to="/radio">
-                <span className="dm-ref">/ radio</span>
-                <h3>Radio</h3>
-                <p>Weekly scripts in Mooré, French and English for each province.</p>
-                <span className="go">Generate a script →</span>
-              </Link>
-              <Link className="dm-tile t-sand" to="/locator">
-                <span className="dm-ref">/ locator</span>
-                <h3>Locator</h3>
-                <p>Find the nearest open CSPS, even offline.</p>
-                <span className="go">Find a clinic →</span>
-              </Link>
-              <Link className="dm-tile t-clay" to="/learn">
-                <span className="dm-ref">/ sira</span>
-                <h3>Sira</h3>
-                <p>Private answers to health questions. Nothing is stored.</p>
-                <span className="go">Ask a question →</span>
-              </Link>
-              <Link className="dm-tile t-dark dm-patterned" to="/relay">
-                <span className="dm-ref">/ relay</span>
-                <h3>Relay</h3>
-                <p>Visit lists and follow-ups for Relais Communautaires.</p>
-                <span className="go">Open the portal →</span>
-              </Link>
-            </div>
-          </div>
-        </section>
       </div>
     </>
   );

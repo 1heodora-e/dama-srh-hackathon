@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 
 import { API_BASE } from "../lib/api";
+import { useAuth } from "../lib/auth";
 
 const scriptOrder = [
   ["opening", "Opening Greeting"],
@@ -81,7 +82,11 @@ function BroadcastCalendar({ provinceName }) {
 }
 
 export default function RadioPortal() {
-  const { provinceId } = useParams();
+  const { provinceId: routeProvinceId } = useParams();
+  const { role } = useAuth();
+  // Radio hosts only see their own station's province; the Ministry can pick any.
+  const lockedProvince = role?.key === "radio" ? role.provinceId : null;
+  const provinceId = lockedProvince || routeProvinceId;
   const [selectedProvince, setSelectedProvince] = useState(provinceId || "1");
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [scriptData, setScriptData] = useState(null);
@@ -165,8 +170,9 @@ export default function RadioPortal() {
         <PageHeader
           refLeft="Radio · Mooré / Français / English"
           refRight="Broadcast-ready"
-          title="Radio scripts"
+          title={lockedProvince ? `This week’s script · ${role.provinceName}` : "Radio scripts"}
           subtitle="Turn a province's vulnerability data into a broadcast-ready SRH segment for local radio, in three languages."
+          audience={lockedProvince ? role.audience : "Community radio hosts · Ministry communication teams"}
         />
         <div className="container radio-inner">
           <header className="card radio-header">
@@ -175,6 +181,8 @@ export default function RadioPortal() {
                 value={selectedProvince}
                 onChange={(event) => setSelectedProvince(event.target.value)}
                 className="radio-select"
+                disabled={Boolean(lockedProvince)}
+                title={lockedProvince ? "Your station's province" : undefined}
               >
                 {provinceOptions.map((option) => (
                   <option key={option.province_id} value={option.province_id}>
@@ -185,9 +193,11 @@ export default function RadioPortal() {
               <button type="button" onClick={handleGenerateScript} className="btn-primary" disabled={loading}>
                 {loading ? "Generating..." : "Generate Script"}
               </button>
-              <Link className="btn-secondary" to="/dashboard">
-                Dashboard
-              </Link>
+              {role?.key === "moh" ? (
+                <Link className="btn-secondary" to="/dashboard">
+                  Dashboard
+                </Link>
+              ) : null}
             </div>
           </header>
           <p className="radio-small">{statusText}</p>

@@ -20,11 +20,9 @@ export default function SiteFooter() {
             dama
           </div>
           <nav className="dm-footer-links" aria-label="Footer">
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/radio">Radio</Link>
-            <Link to="/locator">Locator</Link>
-            <Link to="/learn">Sira</Link>
-            <Link to="/relay">Relay</Link>
+            <Link to="/locator">Find a clinic</Link>
+            <Link to="/learn">Ask Sira</Link>
+            <Link to="/connexion">Staff sign-in</Link>
           </nav>
         </div>
         <div className="dm-footer-row">

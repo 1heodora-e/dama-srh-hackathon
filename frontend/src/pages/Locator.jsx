@@ -66,6 +66,7 @@ export default function Locator() {
           refRight="Works offline"
           title="Find a clinic"
           subtitle="Choose your province to see the nearest CSPS, whether it is open, and the services it offers. Family planning is free at public CSPS."
+          audience="Women, girls and families · No account needed"
         />
         <div className="container locator-inner">
           <div className="mobile-center">
