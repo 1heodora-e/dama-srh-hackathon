@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 
 import { API_BASE } from "../lib/api";
@@ -161,17 +162,14 @@ export default function RadioPortal() {
     <>
       <TopNav />
       <div className="page-shell radio-page">
+        <PageHeader
+          refLeft="Radio · Mooré / Français / English"
+          refRight="Broadcast-ready"
+          title="Radio scripts"
+          subtitle="Turn a province's vulnerability data into a broadcast-ready SRH segment for local radio, in three languages."
+        />
         <div className="container radio-inner">
           <header className="card radio-header">
-            <div>
-              <h1 className="radio-title">
-                Radio Intelligence Portal
-              </h1>
-              <p className="radio-subtitle">
-                Generate detailed district scripts that translate vulnerability data into confident, broadcast-ready SRH
-                guidance.
-              </p>
-            </div>
             <div className="radio-controls">
               <select
                 value={selectedProvince}

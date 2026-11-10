@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 
 const MAX_MESSAGES = 20;
@@ -226,20 +227,12 @@ export default function Learn() {
     <>
       <TopNav />
       <div className="page-shell learn-page">
-        <div className="learn-hero">
-          <div className="hero-grain learn-hero-grain" />
-          <div className="container learn-hero-inner">
-            <div className="learn-logo-mark" />
-            <h1 className="learn-hero-title">
-              Ask anything.
-              <br />
-              No judgment.
-              <br />
-              No record.
-            </h1>
-            <p className="learn-hero-subtitle">
-              Sira is here for every question you were too afraid to ask.
-            </p>
+        <PageHeader
+          refLeft="Sira · Anonymous"
+          refRight="Nothing is stored"
+          title="Ask anything. No judgment. No record."
+          subtitle="Sira is here for every question you were too afraid to ask."
+        >
             <div className="learn-tabs">
               <button
                 type="button"
@@ -256,8 +249,7 @@ export default function Learn() {
                 Resources
               </button>
             </div>
-          </div>
-        </div>
+        </PageHeader>
 
         <div className="container learn-inner">
           {activeTab === "ask" ? (

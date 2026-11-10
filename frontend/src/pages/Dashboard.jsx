@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import CountUp from "react-countup";
 import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 import { API_BASE } from "../lib/api";
 const MAP_URL =
@@ -81,12 +82,13 @@ export default function Dashboard() {
     <>
       <TopNav />
       <div className="page-shell dashboard-page">
+        <PageHeader
+          refLeft="Dashboard · 45 provinces"
+          refRight="Dama model · live"
+          title="Equity intelligence"
+          subtitle="See which provinces need SRH support most, what is driving the gap, and act on it with radio scripts and relay visits."
+        />
         <div className="container dashboard-inner">
-          <h1 className="dashboard-title">Equity Intelligence Dashboard</h1>
-          <p className="dashboard-subtitle">
-            This mission view translates community interactions into district-level vulnerability intelligence so
-            planners, radio teams, and relay workers can align action around the same evidence.
-          </p>
           {error ? <p className="alert alert-error">{error}</p> : null}
           {feedbackText ? <p className="alert alert-info">{feedbackText}</p> : null}
 

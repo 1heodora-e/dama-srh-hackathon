@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 
 import { API_BASE } from "../lib/api";
@@ -153,23 +154,14 @@ export default function RelayPortal() {
     <>
       <TopNav />
       <main className="page-shell relay-page">
+        <PageHeader
+          refLeft="Relay · Relais Communautaire"
+          refRight={relayProfile?.commune || "Assigned commune"}
+          title={`Bonjour, ${relayProfile?.relay_name || "Relay Worker"}`}
+          subtitle="Use this during door-to-door visits to record anonymized SRH needs for your commune."
+        />
         <div className="container relay-inner">
           <div className="mobile-center">
-            <header className="relay-header-row">
-              <div>
-                <p className="label">
-                  dama relay
-                </p>
-                <h1 className="relay-title">
-                  Bonjour, {relayProfile?.relay_name || "Relay Worker"}
-                </h1>
-                <p className="radio-small">
-                  Use this workflow during door-to-door outreach to capture anonymized SRH demand signals for your
-                  commune.
-                </p>
-              </div>
-              <span className="relay-badge">{relayProfile?.commune || "Assigned commune"}</span>
-            </header>
             <p className="helper-box">{feedbackText}</p>
             {errorText ? <p className="alert alert-error">{errorText}</p> : null}
 

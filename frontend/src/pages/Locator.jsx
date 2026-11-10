@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import TopNav from "../components/TopNav";
 
 import { API_BASE } from "../lib/api";
@@ -60,14 +61,14 @@ export default function Locator() {
     <>
       <TopNav />
       <main className="page-shell locator-page">
+        <PageHeader
+          refLeft="Locator · CSPS"
+          refRight="Works offline"
+          title="Find a clinic"
+          subtitle="Choose your province to see the nearest CSPS, whether it is open, and the services it offers. Family planning is free at public CSPS."
+        />
         <div className="container locator-inner">
           <div className="mobile-center">
-            <header className="locator-top">
-              <h1 className="locator-title">Community Locator</h1>
-              <Link className="btn-secondary" to="/dashboard">
-                Dashboard
-              </Link>
-            </header>
             <p className="helper-box">{statusText}</p>
             {offline ? <p className="helper-box">Offline mode active. Cached facility data will be used when needed.</p> : null}
 
