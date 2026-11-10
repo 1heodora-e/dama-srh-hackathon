@@ -152,7 +152,7 @@ export default function Landing() {
                     Find a clinic
                   </Link>
                   <a className="dm-btn dm-btn-line" href="#who">
-                    Who is Dama for?
+                    Choose your role
                   </a>
                 </div>
               </div>
@@ -188,8 +188,8 @@ export default function Landing() {
         <section className="dm-block" id="who">
           <div className="dm-wrap">
             <div className="dm-head">
-              <h2>Who is Dama for?</h2>
-              <span className="dm-tag">Choose your space</span>
+              <h2>Choose your role</h2>
+              <span className="dm-tag">Staff · Public</span>
             </div>
             <div className="dm-tiles dm-who">
               {WHO.map((item) => {
