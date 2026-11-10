@@ -244,7 +244,7 @@ def _call_sira(messages: List[Dict[str, str]], language_mode: str = "auto") -> s
         effective_system = f"{SIRA_SYSTEM_PROMPT}\n\n{language_overrides[language_mode]}"
 
     payload = {
-        "model": "claude-sonnet-4-20250514",
+        "model": os.getenv("SIRA_MODEL", "claude-sonnet-5-5"),
         "max_tokens": 1000,
         "system": effective_system,
         "messages": messages,
